@@ -1,6 +1,6 @@
 crewai
-crewai-tools
-langchain-openai
+crewai-tools>=0.1.6
 openai
-python-dotenv
 streamlit
+python-dotenv
+tavily-python
