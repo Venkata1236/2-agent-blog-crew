@@ -1,0 +1,41 @@
+research_task:
+  description: >
+    Research the following topic thoroughly: {topic}
+
+    Your research should include:
+    - Key facts, statistics, and data points
+    - Latest trends and developments
+    - Different perspectives and viewpoints
+    - Real world examples and use cases
+    - Any controversies or debates around the topic
+
+    Produce well structured, detailed research notes
+    that a blog writer can use directly.
+  expected_output: >
+    A comprehensive research summary of 400-500 words
+    covering key facts, statistics, trends, examples,
+    and insights about the topic. Well organized with
+    clear sections.
+  agent: researcher
+
+write_task:
+  description: >
+    Using the research notes provided, write a complete,
+    engaging blog post about: {topic}
+
+    Requirements:
+    - Start with a compelling title using # heading
+    - Write an engaging introduction that hooks the reader
+    - Include 3-4 main sections with ## subheadings
+    - Use the research facts and statistics naturally
+    - Write in a conversational but informative tone
+    - End with a strong conclusion and call to action
+    - Total length: 600-800 words
+    - Format: clean markdown
+
+  expected_output: >
+    A complete, polished blog post in markdown format.
+    600-800 words. Includes title, introduction,
+    3-4 sections with subheadings, and conclusion.
+    Ready to publish.
+  agent: writer
