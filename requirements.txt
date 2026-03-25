@@ -1,6 +1,6 @@
-crewai
-crewai-tools>=0.1.6
-openai
-streamlit
-python-dotenv
+crewai==0.11.2
+crewai-tools==0.0.1
+openai==1.109.1
+streamlit==1.55.0
+python-dotenv==1.2.2
 tavily-python
