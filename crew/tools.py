@@ -1,5 +1,5 @@
 import os
-from crewai_tools import TavilySearchResults
+from crewai_tools import TavilySearchTool
 
 
 def get_api_keys():
