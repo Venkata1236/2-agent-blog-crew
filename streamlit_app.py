@@ -117,21 +117,37 @@ if not st.session_state.blog_result:
         st.session_state.topic = final_topic.strip()
         st.session_state.running = True
 
-        with st.spinner("🔍 Researcher is gathering information..."):
-            st.info(
-                "⏳ This takes 30-60 seconds. "
-                "Researcher is searching the web, "
-                "Writer is crafting your blog..."
-            )
-            try:
-                result = run_crew(final_topic.strip())
-                st.session_state.blog_result = result
-                st.session_state.running = False
-                st.rerun()
-            except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
-                st.session_state.running = False
+        st.markdown("---")
+        st.markdown("### 🤖 Crew is Working...")
 
+        # Step 1
+        step1 = st.empty()
+        step1.info("🔍 Step 1/3 — Researcher is searching the web for information...")
+
+        # Step 2
+        step2 = st.empty()
+        step2.warning("⏳ Step 2/3 — Researcher is processing and summarizing findings...")
+
+        # Step 3
+        step3 = st.empty()
+        step3.warning("✍️ Step 3/3 — Writer will craft your blog post from research...")
+
+        st.caption("⚠️ Do NOT refresh — this takes 2-3 minutes on cloud.")
+
+        try:
+            result = run_crew(final_topic.strip())
+            st.session_state.blog_result = result
+            st.session_state.running = False
+
+            # Clear steps
+            step1.empty()
+            step2.empty()
+            step3.empty()
+
+            st.rerun()
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+            st.session_state.running = False
 
 # ─────────────────────────────────────────
 # MAIN — RESULT
