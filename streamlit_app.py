@@ -1,21 +1,15 @@
 import streamlit as st
 import os
-import threading
 from dotenv import load_dotenv
 from crew.blog_crew import run_crew
 
 load_dotenv()
 
-
-# ─────────────────────────────────────────
-# PAGE CONFIG
-# ─────────────────────────────────────────
 st.set_page_config(
     page_title="2-Agent Blog Crew",
     page_icon="🤖",
     layout="centered"
 )
-
 
 # ─────────────────────────────────────────
 # SESSION STATE
@@ -24,13 +18,6 @@ if "blog_result" not in st.session_state:
     st.session_state.blog_result = None
 if "topic" not in st.session_state:
     st.session_state.topic = ""
-if "running" not in st.session_state:
-    st.session_state.running = False
-if "error" not in st.session_state:
-    st.session_state.error = None
-if "progress_step" not in st.session_state:
-    st.session_state.progress_step = 0
-
 
 # ─────────────────────────────────────────
 # SIDEBAR
@@ -38,45 +25,31 @@ if "progress_step" not in st.session_state:
 with st.sidebar:
     st.title("🤖 2-Agent Blog Crew")
     st.markdown("---")
-
     st.markdown("### 👥 The Crew")
     st.markdown("🔍 **Researcher Agent**")
-    st.caption("Searches web, gathers facts and insights")
+    st.caption("Searches web, gathers facts")
     st.markdown("✍️ **Writer Agent**")
-    st.caption("Turns research into a polished blog post")
-
+    st.caption("Turns research into blog post")
     st.markdown("---")
     st.markdown("### ⚙️ Process")
     st.markdown("Sequential — Researcher → Writer")
-
     st.markdown("---")
-
     if st.button("🔄 New Blog", use_container_width=True):
         st.session_state.blog_result = None
         st.session_state.topic = ""
-        st.session_state.running = False
-        st.session_state.error = None
-        st.session_state.progress_step = 0
         st.rerun()
-
     st.markdown("---")
-    st.markdown("### ℹ️ About")
-    st.caption(
-        "CrewAI 2-agent crew. Researcher uses "
-        "Tavily to find real web information. "
-        "Writer crafts a full blog post."
-    )
+    st.caption("CrewAI 2-agent crew using Tavily search + GPT-4o-mini.")
 
 
 # ─────────────────────────────────────────
-# MAIN — INPUT SCREEN
+# MAIN — INPUT
 # ─────────────────────────────────────────
-if not st.session_state.running and not st.session_state.blog_result:
+if not st.session_state.blog_result:
 
     st.title("🤖 2-Agent Blog Crew")
     st.markdown(
-        "Two AI agents working together — "
-        "**Researcher** finds the facts, "
+        "**Researcher** finds the facts → "
         "**Writer** creates the blog."
     )
     st.markdown("---")
@@ -118,97 +91,29 @@ if not st.session_state.running and not st.session_state.blog_result:
 
     if start and final_topic.strip():
         st.session_state.topic = final_topic.strip()
-        st.session_state.running = True
-        st.session_state.progress_step = 1
-        st.rerun()
 
+        st.markdown("---")
+        st.markdown("### 🤖 Crew is Working...")
+        st.warning(
+            "⏳ Please wait 2-3 minutes.\n\n"
+            "🔍 Researcher is searching the web...\n\n"
+            "✍️ Writer is crafting your blog...\n\n"
+            "🚫 Do NOT refresh this page."
+        )
 
-# ─────────────────────────────────────────
-# MAIN — RUNNING SCREEN
-# ─────────────────────────────────────────
-elif st.session_state.running and not st.session_state.blog_result:
-
-    st.title("🤖 Crew is Working...")
-    st.markdown(f"**Topic:** {st.session_state.topic}")
-    st.markdown("---")
-
-    # Progress steps
-    steps = {
-        1: ("🔍", "Researcher is searching the web...", "blue"),
-        2: ("📝", "Researcher is summarizing findings...", "blue"),
-        3: ("✍️", "Writer is crafting your blog post...", "orange"),
-        4: ("✅", "Finalizing and polishing...", "green"),
-    }
-
-    step = st.session_state.progress_step
-    emoji, message, color = steps.get(step, ("⏳", "Processing...", "gray"))
-
-    st.markdown(f"### {emoji} {message}")
-    progress_val = step / 4
-    st.progress(progress_val)
-
-    st.info(
-        "⏳ CrewAI agents take 2-3 minutes to complete.\n\n"
-        "🚫 Do NOT refresh or close this page."
-    )
-
-    # Run crew in background thread
-    if "thread_started" not in st.session_state:
-        st.session_state.thread_started = False
-
-    if not st.session_state.thread_started:
-        st.session_state.thread_started = True
-
-        def run_in_background():
+        with st.spinner("Running crew — this takes 2-3 minutes..."):
             try:
-                result = run_crew(st.session_state.topic)
+                result = run_crew(final_topic.strip())
                 st.session_state.blog_result = result
-                st.session_state.running = False
-                st.session_state.thread_started = False
+                st.rerun()
             except Exception as e:
-                st.session_state.error = str(e)
-                st.session_state.running = False
-                st.session_state.thread_started = False
-
-        thread = threading.Thread(target=run_in_background)
-        thread.daemon = True
-        thread.start()
-
-    # Auto advance progress steps every rerun
-    import time
-    time.sleep(3)
-
-    if st.session_state.blog_result:
-        st.rerun()
-    elif st.session_state.error:
-        st.rerun()
-    else:
-        # Advance progress step
-        if st.session_state.progress_step < 4:
-            st.session_state.progress_step += 1
-        st.rerun()
+                st.error(f"❌ Error: {str(e)}")
 
 
 # ─────────────────────────────────────────
-# MAIN — ERROR SCREEN
-# ─────────────────────────────────────────
-elif st.session_state.error:
-
-    st.title("❌ Something went wrong")
-    st.error(st.session_state.error)
-
-    if st.button("🔄 Try Again", use_container_width=True):
-        st.session_state.error = None
-        st.session_state.running = False
-        st.session_state.thread_started = False
-        st.rerun()
-
-
-# ─────────────────────────────────────────
-# MAIN — RESULT SCREEN
+# MAIN — RESULT
 # ─────────────────────────────────────────
 else:
-
     st.title("🎉 Blog Post Ready!")
     st.markdown(f"**Topic:** {st.session_state.topic}")
     st.markdown("---")
@@ -220,8 +125,7 @@ else:
     with col1:
         st.metric("Word Count", f"~{word_count}")
     with col2:
-        reading_time = max(1, word_count // 200)
-        st.metric("Reading Time", f"{reading_time} min")
+        st.metric("Reading Time", f"{max(1, word_count // 200)} min")
 
     st.markdown("---")
     st.markdown(st.session_state.blog_result)
